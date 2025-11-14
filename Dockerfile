@@ -94,6 +94,9 @@ RUN chgrp -R 0 ${NIFI_BASE_DIR} \
     && chmod -R g+w ${NIFI_HOME}/state \
     && chmod -R g+w ${NIFI_HOME}/run
 
+# Set HOME for OpenShift compatibility (toolkit scripts write to $HOME)
+ENV HOME=${NIFI_BASE_DIR}
+
 # Web HTTP(s) & Socket Site-to-Site Ports
 EXPOSE 8443/tcp 10000/tcp 8000/tcp
 

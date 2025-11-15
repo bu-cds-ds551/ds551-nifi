@@ -52,16 +52,22 @@ USER nifi
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Download and install NiFi Toolkit
-RUN curl -fSL ${MIRROR_BASE_URL}/${NIFI_TOOLKIT_BINARY_PATH} -o ${NIFI_BASE_DIR}/nifi-toolkit-${NIFI_VERSION}-bin.zip \
-    && echo "$(curl ${BASE_URL}/${NIFI_TOOLKIT_BINARY_PATH}.sha512) *${NIFI_BASE_DIR}/nifi-toolkit-${NIFI_VERSION}-bin.zip" | sha512sum -c - \
+# Using --max-time, --retry, and --retry-delay for more robust downloads
+RUN curl -fSL --max-time 900 --retry 5 --retry-delay 10 \
+        ${MIRROR_BASE_URL}/${NIFI_TOOLKIT_BINARY_PATH} \
+        -o ${NIFI_BASE_DIR}/nifi-toolkit-${NIFI_VERSION}-bin.zip \
+    && echo "$(curl --max-time 60 --retry 3 ${BASE_URL}/${NIFI_TOOLKIT_BINARY_PATH}.sha512) *${NIFI_BASE_DIR}/nifi-toolkit-${NIFI_VERSION}-bin.zip" | sha512sum -c - \
     && unzip ${NIFI_BASE_DIR}/nifi-toolkit-${NIFI_VERSION}-bin.zip -d ${NIFI_BASE_DIR} \
     && rm ${NIFI_BASE_DIR}/nifi-toolkit-${NIFI_VERSION}-bin.zip \
     && mv ${NIFI_BASE_DIR}/nifi-toolkit-${NIFI_VERSION} ${NIFI_TOOLKIT_HOME} \
     && ln -s ${NIFI_TOOLKIT_HOME} ${NIFI_BASE_DIR}/nifi-toolkit-${NIFI_VERSION}
 
-# Download and install NiFi
-RUN curl -fSL ${MIRROR_BASE_URL}/${NIFI_BINARY_PATH} -o ${NIFI_BASE_DIR}/nifi-${NIFI_VERSION}-bin.zip \
-    && echo "$(curl ${BASE_URL}/${NIFI_BINARY_PATH}.sha512) *${NIFI_BASE_DIR}/nifi-${NIFI_VERSION}-bin.zip" | sha512sum -c - \
+# Download and install NiFi (large file ~2GB, needs extended timeout)
+# Using --max-time 1800 (30 minutes), --retry 5, and --retry-delay 10
+RUN curl -fSL --max-time 1800 --retry 5 --retry-delay 10 \
+        ${MIRROR_BASE_URL}/${NIFI_BINARY_PATH} \
+        -o ${NIFI_BASE_DIR}/nifi-${NIFI_VERSION}-bin.zip \
+    && echo "$(curl --max-time 60 --retry 3 ${BASE_URL}/${NIFI_BINARY_PATH}.sha512) *${NIFI_BASE_DIR}/nifi-${NIFI_VERSION}-bin.zip" | sha512sum -c - \
     && unzip ${NIFI_BASE_DIR}/nifi-${NIFI_VERSION}-bin.zip -d ${NIFI_BASE_DIR} \
     && rm ${NIFI_BASE_DIR}/nifi-${NIFI_VERSION}-bin.zip \
     && mv ${NIFI_BASE_DIR}/nifi-${NIFI_VERSION} ${NIFI_HOME} \
